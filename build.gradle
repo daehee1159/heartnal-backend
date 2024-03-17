@@ -1,0 +1,60 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.1'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'war'
+}
+
+group = 'com.msm'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// firebase sdk
+	implementation 'com.google.firebase:firebase-admin:7.3.0'
+
+	// 파일 업로드
+	implementation 'commons-io:commons-io:2.6'
+
+	// okhttp
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.1'
+
+	// Spring Data Jdbc
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	// Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// Mybatis
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.0'
+	// Spring Session
+	implementation 'org.springframework.session:spring-session-core'
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	// MySQL
+	runtimeOnly 'mysql:mysql-connector-java'
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	// gson
+	implementation('com.google.code.gson:gson:2.8.5')
+
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor 'org.projectlombok:lombok'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+test {
+	useJUnitPlatform()
+}

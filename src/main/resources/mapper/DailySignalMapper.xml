@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.DailySignalMapper">
+
+    <insert id="setMessageOfTheDay" parameterType="com.msm.heartnal.core.dto.MessageOfTheDayDto" useGeneratedKeys="true" keyColumn="messageOfTheDaySeq">
+        INSERT INTO couple_signal.message_of_the_day
+        (senderMemberSeq, recipientMemberSeq, coupleCode, message, regDt)
+        VALUES
+        (#{senderMemberSeq}, #{recipientMemberSeq}, #{coupleCode}, #{message}, NOW())
+        <selectKey resultType="Long" keyProperty="messageOfTheDaySeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <select id="getMessageOfTheDay" parameterType="String" resultType="com.msm.heartnal.core.dto.MessageOfTheDayDto">
+        SELECT
+            *
+        FROM couple_signal.message_of_the_day
+        WHERE coupleCode = #{coupleCode}
+    </select>
+
+    <select id="getMessageOfTheDayBySeq" parameterType="Long" resultType="com.msm.heartnal.core.dto.MessageOfTheDayDto">
+        SELECT
+            *
+        FROM couple_signal.message_of_the_day
+        WHERE messageOfTheDaySeq = #{messageOfTheDaySeq}
+    </select>
+
+    <select id="getMessageOfTheDayBySenderSeq" parameterType="Long" resultType="com.msm.heartnal.core.dto.MessageOfTheDayDto">
+        SELECT
+            *
+        FROM couple_signal.message_of_the_day
+        WHERE senderMemberSeq = #{senderMemberSeq}
+    </select>
+
+    <select id="getTodayMessageOfTheDay" parameterType="String" resultType="com.msm.heartnal.core.dto.MessageOfTheDayDto">
+        SELECT
+            *
+        FROM couple_signal.message_of_the_day
+        WHERE coupleCode = #{coupleCode} AND regDt > date_add(NOW(), interval -2 day) ORDER BY regDt desc
+    </select>
+
+    <delete id="deleteMessageOfTheDay" parameterType="java.util.ArrayList">
+        DELETE FROM couple_signal.message_of_the_day
+        WHERE messageOfTheDaySeq IN
+        <foreach collection="messageOfTheDaySeqList" item="item" index="index" separator="," open="(" close=")">
+            #{item.value}
+        </foreach>
+    </delete>
+
+    <select id="getTodaySignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.signal.TodaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.today_signal
+        WHERE todaySignalSeq = #{todaySignalSeq}
+    </select>
+
+    <select id="getCheckTodaySignal" resultType="com.msm.heartnal.core.dto.signal.TodaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.today_signal
+        WHERE coupleCode = #{coupleCode} AND DATE_FORMAT(regDt, "%Y-%m-%d") = CURDATE()
+    </select>
+
+    <select id="getAllTodaySignal" resultType="com.msm.heartnal.core.dto.signal.TodaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.today_signal
+        WHERE coupleCode = #{coupleCode} AND finalScore IS NOT NULL ORDER BY regDt DESC
+    </select>
+
+    <insert id="setTodaySignal" parameterType="com.msm.heartnal.core.dto.signal.TodaySignalDto" useGeneratedKeys="true" keyColumn="todaySignalSeq">
+        INSERT INTO couple_signal.today_signal
+        (senderMemberSeq, recipientMemberSeq, coupleCode, questions, senderAnswers, senderComplete, regDt)
+        VALUES
+        (#{senderMemberSeq}, #{recipientMemberSeq}, #{coupleCode}, #{questions}, #{senderAnswers}, #{senderComplete}, NOW())
+        <selectKey resultType="Long" keyProperty="todaySignalSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <update id="updateTodaySignal" parameterType="com.msm.heartnal.core.dto.signal.TodaySignalDto">
+        UPDATE couple_signal.today_signal
+        SET
+            recipientAnswers = #{recipientAnswers},
+            recipientComplete = #{recipientComplete},
+            finalScore = #{finalScore},
+            modDt = NOW()
+        WHERE todaySignalSeq = #{todaySignalSeq} AND coupleCode = #{coupleCode}
+    </update>
+
+    <delete id="deleteUnResolvedTodaySignal" parameterType="com.msm.heartnal.core.dto.MemberDto">
+        DELETE FROM couple_signal.today_signal
+        WHERE coupleCode = #{coupleCode} AND finalScore is null
+    </delete>
+
+    <select id="getQuestions" resultType="com.msm.heartnal.core.dto.signal.TodaySignalQuestionDto">
+        SELECT
+            *
+        FROM couple_signal.today_signal_questions ORDER BY RAND() LIMIT 10
+    </select>
+
+    <select id="getQuestionList" resultType="com.msm.heartnal.core.dto.signal.TodaySignalQuestionDto">
+        SELECT
+            *
+        FROM couple_signal.today_signal_questions
+        WHERE todaySignalQuestionSeq IN
+        <foreach collection="seqList" item="item" index="index" separator="," open="(" close=")">
+            #{item.value}
+        </foreach>
+    </select>
+
+</mapper>
+

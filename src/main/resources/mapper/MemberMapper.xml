@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.MemberMapper">
+
+    <insert id="memberRegistration" parameterType="com.msm.heartnal.core.dao.MemberDao" useGeneratedKeys="true" keyColumn="memberSeq">
+        INSERT INTO member.couple_signal_member
+        (
+            coupleMemberSeq,
+
+            username,
+            password,
+
+            email,
+            nickName,
+            coupleNickName,
+
+            coupleCode,
+            myDeviceToken,
+            coupleDeviceToken,
+
+            expression,
+
+            status,
+            userRole,
+
+            regDt,
+            modDt,
+            coupleRegDt
+        )
+        VALUES
+        (
+            #{coupleMemberSeq},
+
+            #{username},
+            #{password},
+
+            #{email},
+            #{nickName},
+            #{coupleNickName},
+
+            #{coupleCode},
+            #{myDeviceToken},
+            #{coupleDeviceToken},
+
+            #{expression},
+
+            #{status},
+            #{userRole},
+
+            #{regDt},
+            #{modDt},
+            #{coupleRegDt}
+        )
+        <selectKey resultType="Long" keyProperty="memberSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <insert id="iosMemberRegistration" parameterType="com.msm.heartnal.core.dto.IosMemberDto">
+        INSERT INTO member.ios_member
+            (email, identifier, regDt)
+        VALUES
+            (#{email}, #{identifier}, NOW())
+    </insert>
+
+    <select id="getIosMember" parameterType="String" resultType="com.msm.heartnal.core.dto.IosMemberDto">
+        SELECT
+            *
+        FROM member.ios_member
+        WHERE identifier = #{identifier}
+    </select>
+
+    <select id="getFCMToken" parameterType="Long" resultType="String">
+        SELECT
+            myDeviceToken
+        FROM member.couple_signal_member
+        WHERE memberSeq = #{memberSeq}
+    </select>
+
+    <select id="getMemberInfoByUsername" parameterType="String" resultType="com.msm.heartnal.core.dao.MemberDao">
+        SELECT
+            *
+        FROM member.couple_signal_member
+        WHERE username = #{username}
+    </select>
+
+    <select id="getMemberInfoBySenderMemberSeq" parameterType="Long" resultType="com.msm.heartnal.core.dao.MemberDao">
+        SELECT
+            *
+        FROM member.couple_signal_member
+        WHERE memberSeq = #{memberSeq}
+    </select>
+
+    <select id="getMemberInfoByCoupleCode" parameterType="String" resultType="com.msm.heartnal.core.dao.MemberDao">
+        SELECT
+            *
+        FROM member.couple_signal_member
+        WHERE coupleCode = #{coupleCode}
+    </select>
+
+    <update id="changedDeviceToken" parameterType="String">
+        UPDATE member.couple_signal_member
+        SET
+            myDeviceToken = #{myDeviceToken},
+            coupleDeviceToken = #{coupleDeviceToken}
+        WHERE username = #{username}
+    </update>
+
+    <insert id="setCalendar" parameterType="com.msm.heartnal.core.dto.CalendarRequestDto">
+        INSERT INTO member.calendar
+            (username, coupleCode, isPeriod, startDt, endDt, color, memo, regDt)
+        VALUES
+            (#{username}, #{coupleCode}, #{isPeriod} , #{startDt}, #{endDt}, #{color}, #{memo}, NOW())
+    </insert>
+
+<!--    <resultMap id="responseCalendar" type="com.msm.heartnal.core.dto.CalendarResponseDto">-->
+<!--        <result property="datetime" column="datetime" />-->
+<!--        <collection property="memoLists" javaType="java.util.List" resultMap="memoList" />-->
+<!--    </resultMap>-->
+
+<!--    <resultMap id="memoList" type="com.msm.heartnal.core.dto.CalendarResponseDto$MemoList">-->
+<!--        <result property="memo" column="memo" />-->
+<!--    </resultMap>-->
+
+    <select id="getCalendar" parameterType="String" resultType="com.msm.heartnal.core.dto.CalendarResponseDto">
+        SELECT
+            *
+        FROM member.calendar
+        WHERE coupleCode = #{coupleCode} AND validYN = "Y"
+
+    </select>
+
+    <delete id="deleteCalendar" parameterType="com.msm.heartnal.core.dto.CalendarRequestDto">
+        DELETE FROM member.calendar
+        WHERE calendarSeq = #{calendarSeq} AND coupleCode = #{coupleCode} AND startDt = #{startDt} AND endDt = #{endDt} AND memo = #{memo}
+    </delete>
+
+    <select id="getTempSignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.TempSignalDto">
+        SELECT
+            *
+        FROM couple_signal.temp_signal
+        WHERE memberSeq = #{memberSeq} AND regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc
+    </select>
+
+    <insert id="setTempSignal" parameterType="com.msm.heartnal.core.dto.TempSignalDto" useGeneratedKeys="true" keyColumn="tempSignalSeq">
+        INSERT INTO couple_signal.temp_signal
+            (category, signalSeq, position, memberSeq, tryCount, termination, regDt)
+        VALUES
+            (#{category}, #{signalSeq}, #{position}, #{memberSeq}, #{tryCount}, #{termination},NOW())
+        <selectKey resultType="Long" keyProperty="tempSignalSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <delete id="deleteTempSignal" parameterType="com.msm.heartnal.core.dto.TempSignalDto">
+        DELETE FROM couple_signal.temp_signal
+        WHERE tempSignalSeq = #{tempSignalSeq} AND memberSeq = #{memberSeq}
+    </delete>
+
+    <select id="coupleUnResolvedEatSignal" parameterType="String" resultType="Long">
+        SELECT
+            eatSignalSeq
+        FROM couple_signal.eat_signal
+        WHERE coupleCode = #{coupleCode} AND finalResult is null AND validYN = "Y" AND regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="coupleUnResolvedPlaySignal" parameterType="String" resultType="Long">
+        SELECT
+            playSignalSeq
+        FROM couple_signal.play_signal
+        WHERE coupleCode = #{coupleCode} AND finalResult is null AND validYN = "Y" AND regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="hasUnresolvedSenderEatSignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.EatSignalDto">
+        SELECT
+            *
+        FROM couple_signal.eat_signal
+        WHERE senderMemberSeq = #{senderMemberSeq} AND finalResult is null AND validYN = "Y" AND
+            (recipientPrimarySelected is null OR recipientSecondarySelected is null OR recipientTertiarySelected is null) AND regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="hasUnresolvedSenderPlaySignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.PlaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.play_signal
+        WHERE senderMemberSeq = #{senderMemberSeq} AND finalResult is null AND validYN = "Y" AND
+            (recipientPrimarySelected is null OR recipientSecondarySelected is null OR recipientTertiarySelected is null) AND regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="hasUnresolvedRecipientEatSignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.EatSignalDto">
+        SELECT
+            *
+        FROM couple_signal.eat_signal
+        WHERE recipientMemberSeq = #{recipientMemberSeq} AND finalResult is null AND validYN = "Y" AND
+            regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="hasUnresolvedRecipientPlaySignal" parameterType="Long" resultType="com.msm.heartnal.core.dto.PlaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.play_signal
+        WHERE recipientMemberSeq = #{recipientMemberSeq} AND finalResult is null AND validYN = "Y" AND
+            regDt > date_add(NOW(), interval -1 day) ORDER BY regDt desc limit 1
+    </select>
+
+    <select id="getNotification" parameterType="Long" resultType="com.msm.heartnal.core.dto.NotificationDto">
+        SELECT
+            type,message, regDt
+        FROM member.notification
+        WHERE memberSeq = #{memberSeq} AND validYN = "Y"
+        order by regDt desc limit 30
+    </select>
+
+    <insert id="setNotification" parameterType="com.msm.heartnal.core.dto.NotificationDto">
+        INSERT INTO member.notification
+            (memberSeq, coupleMemberSeq, type, message, regDt)
+        VALUES
+            (#{memberSeq}, #{coupleMemberSeq}, #{type}, #{message}, NOW())
+    </insert>
+
+    <select id="hasCode" parameterType="String" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM member.couple_signal_member
+        WHERE coupleCode = #{coupleCode}
+    </select>
+
+    <update id="updateCoupleRegDt" parameterType="com.msm.heartnal.core.dto.MyProfileInfo">
+        UPDATE member.couple_signal_member
+        SET
+            coupleRegDt = #{coupleRegDt}
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <update id="setCoupleCode" parameterType="com.msm.heartnal.core.dto.CoupleCodeDto">
+        UPDATE member.couple_signal_member
+        SET
+            coupleCode = #{coupleCode}
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <update id="coupleRegistration" parameterType="com.msm.heartnal.core.dto.CoupleCodeDto">
+        UPDATE member.couple_signal_member
+        SET
+            coupleMemberSeq = #{coupleMemberSeq},
+            coupleNickName = #{coupleNickName},
+            coupleCode = #{coupleCode},
+            coupleDeviceToken = #{coupleDeviceToken},
+            coupleRegDt = #{coupleRegDt}
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <select id="getDisconnectCouple" parameterType="Long" resultType="com.msm.heartnal.core.dto.DisconnectCoupleDto">
+        SELECT
+            *
+        FROM member.disconnect_couple
+        WHERE (memberSeq1 = #{memberSeq1} AND memberSeq2 = #{memberSeq2}) OR (memberSeq1 = #{memberSeq2} AND memberSeq2 = #{memberSeq1})
+    </select>
+
+    <delete id="deleteDisconnectCouple" parameterType="Long">
+        DELETE FROM member.disconnect_couple
+        WHERE disconnectSeq = #{disconnectSeq}
+    </delete>
+
+    <update id="restoreCalendar" parameterType="String">
+        UPDATE member.calendar
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restoreAnniversary" parameterType="String">
+        UPDATE member.anniversary
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE username = #{username}
+    </update>
+
+    <update id="restoreNotification" parameterType="Long">
+        UPDATE member.notification
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <insert id="insertDisconnectCouple" parameterType="com.msm.heartnal.core.dto.DisconnectCoupleDto">
+        INSERT INTO member.disconnect_couple
+            (memberSeq1, memberSeq2, disconnectDt, coupleCode, coupleRegDt, regDt)
+        VALUES
+            (#{memberSeq1}, #{memberSeq2}, NOW(), #{coupleCode}, #{coupleRegDt}, NOW())
+    </insert>
+
+    <update id="coupleDisconnect" parameterType="com.msm.heartnal.core.dto.CoupleCodeDto">
+        UPDATE member.couple_signal_member
+        SET
+            coupleMemberSeq = null,
+            coupleNickName = null,
+            coupleCode = null,
+            coupleDeviceToken = null,
+            coupleRegDt = null
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <update id="deleteCalendarByCoupleCode" parameterType="String">
+        UPDATE member.calendar
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="deleteAnniversary" parameterType="String">
+        UPDATE member.anniversary
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE username = #{username}
+    </update>
+
+    <update id="deleteNotification" parameterType="Long">
+        UPDATE member.notification
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <select id="getCoupleInfoByUsername" parameterType="String" resultType="com.msm.heartnal.core.dao.MemberDao">
+        SELECT
+            coupleNickName, coupleCode, coupleRegDt
+        FROM member.couple_signal_member
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insertDeleteAccount" parameterType="com.msm.heartnal.core.dto.DeleteAccountDto">
+        INSERT INTO member.delete_account_reason
+            (username, reasonMessage, regDt)
+        VALUES
+            (#{username}, #{reasonMessage}, NOW())
+    </insert>
+
+    <update id="updateStatus" parameterType="com.msm.heartnal.core.dto.DeleteAccountDto">
+        UPDATE member.couple_signal_member
+        SET
+            status = #{status}
+        WHERE username = #{username}
+    </update>
+
+    <delete id="deleteAccount" parameterType="com.msm.heartnal.core.dto.CalendarRequestDto">
+        DELETE FROM member.couple_signal_member
+        WHERE memberSeq = #{memberSeq}
+    </delete>
+
+    <insert id="setAnniversary" parameterType="com.msm.heartnal.core.dto.AnniversaryDto">
+        INSERT INTO member.anniversary
+            (username, anniversaryDate, anniversaryTitle, repeatYN, regDt)
+        VALUES
+            (#{username}, #{anniversaryDate}, #{anniversaryTitle}, #{repeatYN}, NOW())
+    </insert>
+
+    <select id="getAnniversaryByUsername" parameterType="String" resultType="com.msm.heartnal.core.dto.AnniversaryDto">
+        SELECT
+            anniversarySeq, username, anniversaryDate, anniversaryTitle, repeatYN
+        FROM member.anniversary
+        WHERE username = #{username} AND validYN = "Y"
+    </select>
+
+    <update id="updateAnniversary" parameterType="com.msm.heartnal.core.dto.AnniversaryDto">
+        UPDATE member.anniversary
+        SET
+            anniversaryDate = #{anniversaryDate},
+            anniversaryTitle = #{anniversaryTitle},
+            repeatYN = #{repeatYN}
+        WHERE username = #{username} AND anniversarySeq = #{anniversarySeq}
+    </update>
+
+    <delete id="deleteAnniversaryByUser" parameterType="com.msm.heartnal.core.dto.AnniversaryDto">
+        DELETE FROM member.anniversary
+        WHERE anniversarySeq = #{anniversarySeq}
+    </delete>
+
+    <update id="updateNickName" parameterType="com.msm.heartnal.core.dto.MyProfileInfo">
+        UPDATE member.couple_signal_member
+        SET
+            nickName = #{nickName}
+        WHERE username = #{username}
+    </update>
+
+    <update id="updateCoupleInfo" parameterType="com.msm.heartnal.core.dao.MemberDao">
+        UPDATE member.couple_signal_member
+        SET
+            coupleMemberSeq = #{coupleMemberSeq},
+            coupleNickName = #{coupleNickName},
+            coupleCode = #{coupleCode},
+            coupleDeviceToken = #{coupleDeviceToken},
+            coupleRegDt = #{coupleRegDt}
+        WHERE username = #{username}
+    </update>
+
+    <select id="getImgByUsername" parameterType="String" resultType="com.msm.heartnal.core.dao.MemberDao">
+        SELECT
+            myProfileImgAddr, coupleProfileImgAddr, mainBannerImgAddr
+        FROM member.couple_signal_member
+        WHERE username = #{username}
+    </select>
+
+    <update id="setMyProfileImg" parameterType="com.msm.heartnal.core.dto.MyProfileInfo">
+        UPDATE member.couple_signal_member
+        SET
+            myProfileImgAddr = #{myProfileImgAddr}
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <update id="setMainBannerImg" parameterType="com.msm.heartnal.core.dto.MyProfileInfo">
+        UPDATE member.couple_signal_member
+        SET
+            mainBannerImgAddr = #{mainBannerImgAddr}
+        WHERE memberSeq = #{memberSeq}
+    </update>
+
+    <update id="setMyExpression" parameterType="com.msm.heartnal.core.dto.ExpressionDto">
+        UPDATE member.couple_signal_member
+        SET
+            expression = #{myExpression}
+        WHERE username = #{username}
+    </update>
+
+    <update id="setCoupleExpression" parameterType="com.msm.heartnal.core.dto.ExpressionDto">
+        UPDATE member.couple_signal_member
+        SET
+            expression = #{myExpression}
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <select id="getAppVersionIos" resultType="String">
+        SELECT
+            version
+        FROM member.version_history_ios
+        WHERE validYN = "Y"
+        ORDER BY regDt DESC
+    </select>
+
+    <select id="getAppVersionAndroid" resultType="String">
+        SELECT
+            version
+        FROM member.version_history_android
+        WHERE validYN = "Y"
+        ORDER BY regDt DESC
+    </select>
+
+    <insert id="setInquiry" parameterType="com.msm.heartnal.core.dto.inquiry.InquiryDto">
+        INSERT INTO service_center.one_on_one_inquiry
+            (memberSeq, inquiryTitle, inquiries, inquiryDt)
+        VALUES
+            (#{memberSeq}, #{inquiryTitle}, #{inquiries}, NOW())
+    </insert>
+
+    <select id="getInquiry" resultType="com.msm.heartnal.core.dto.inquiry.InquiryDto">
+        SELECT
+            *
+        FROM service_center.one_on_one_inquiry
+        WHERE memberSeq = #{memberSeq}
+        ORDER BY inquiryDt DESC
+    </select>
+
+
+</mapper>

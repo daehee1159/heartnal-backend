@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.SignalMapper">
+
+    <resultMap id="recentSignalMap" type="com.msm.heartnal.core.dto.RecentSignalDto">
+        <result property="category" column="category" />
+        <result property="signalSeq" column="signalSeq" />
+        <result property="finalResult" column="finalResult" />
+        <result property="regDt" column="regDt" />
+    </resultMap>
+
+    <select id="getEatRecentSignal" parameterType="com.msm.heartnal.core.dao.MemberDao" resultMap="recentSignalMap">
+        select
+            category as category,
+            eatSignalSeq as signalSeq,
+            finalResult,
+            regDt
+        from couple_signal.eat_signal
+        where senderMemberSeq in (#{memberSeq}, #{coupleMemberSeq}) AND coupleCode = #{coupleCode} AND validYN = "Y" order by regDt desc limit 20
+    </select>
+
+    <select id="getPlayRecentSignal" parameterType="com.msm.heartnal.core.dao.MemberDao" resultMap="recentSignalMap">
+        select
+            category as category,
+            playSignalSeq as signalSeq,
+            finalResult,
+            regDt
+        from couple_signal.play_signal
+        where senderMemberSeq in (#{memberSeq}, #{coupleMemberSeq}) AND coupleCode = #{coupleCode} AND validYN = "Y" order by regDt desc limit 20
+    </select>
+
+    <select id="getAllEatSignalList" parameterType="com.msm.heartnal.core.dao.MemberDao" resultMap="recentSignalMap">
+        select
+            category as category,
+            eatSignalSeq as signalSeq,
+            senderMemberSeq,
+            finalResult,
+            finalResultItem,
+            regDt
+        from couple_signal.eat_signal
+        where senderMemberSeq in (#{memberSeq}, #{coupleMemberSeq}) AND coupleCode = #{coupleCode} AND validYN = "Y" order by regDt
+    </select>
+
+    <select id="getAllPlaySignalList" parameterType="com.msm.heartnal.core.dao.MemberDao" resultMap="recentSignalMap">
+        select
+            category as category,
+            playSignalSeq as signalSeq,
+            senderMemberSeq,
+            finalResult,
+            finalResultItem,
+            regDt
+        from couple_signal.play_signal
+        where senderMemberSeq in (#{memberSeq}, #{coupleMemberSeq}) AND coupleCode = #{coupleCode} AND validYN = "Y" order by regDt
+    </select>
+
+    <select id="getMostMatchedEatSignalItem" parameterType="com.msm.heartnal.core.dto.MostMatchedSignalItemDto" resultType="com.msm.heartnal.core.dto.MostMatchedSignalItemDto">
+        <![CDATA[
+        select
+            finalResultItem as mostMatchedSignalItem,
+            count(finalResultItem) as mostMatchedSignalItemCount,
+            regDt
+        from couple_signal.eat_signal
+        WHERE coupleCode = #{coupleCode} AND validYN = "Y" AND regDt >= #{startDt} AND regDt <= #{endDt}
+        group by mostMatchedSignalItem
+        order by mostMatchedSignalItemCount
+        desc limit 1;
+        ]]>
+    </select>
+
+    <select id="getMostMatchedPlaySignalItem" parameterType="com.msm.heartnal.core.dto.MostMatchedSignalItemDto" resultType="com.msm.heartnal.core.dto.MostMatchedSignalItemDto">
+        <![CDATA[
+        select
+            finalResultItem as mostMatchedSignalItem,
+            count(finalResultItem) as mostMatchedSignalItemCount,
+            regDt
+        from couple_signal.play_signal
+        WHERE coupleCode = #{coupleCode} AND validYN = "Y" AND regDt >= #{startDt} AND regDt <= #{endDt}
+        group by mostMatchedSignalItem
+        order by mostMatchedSignalItemCount
+        desc limit 1;
+        ]]>
+    </select>
+
+    <update id="deleteEatSignal" parameterType="String">
+        UPDATE couple_signal.eat_signal
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="deletePlaySignal" parameterType="String">
+        UPDATE couple_signal.play_signal
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restoreEatSignal" parameterType="String">
+        UPDATE couple_signal.eat_signal
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restorePlaySignal" parameterType="String">
+        UPDATE couple_signal.play_signal
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+</mapper>

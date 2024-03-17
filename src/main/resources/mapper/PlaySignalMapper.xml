@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.PlaySignalMapper">
+
+    <insert id="senderPlaySignal" parameterType="com.msm.heartnal.core.dto.PlaySignalDto" useGeneratedKeys="true" keyColumn="playSignalSeq">
+        INSERT INTO couple_signal.play_signal
+        (
+        senderMemberSeq,
+        recipientMemberSeq,
+        coupleCode,
+
+        category,
+        senderPrimarySelected,
+
+        regDt
+        )
+        VALUES
+        (
+        #{senderMemberSeq},
+        #{recipientMemberSeq},
+        #{coupleCode},
+
+        #{category},
+        #{senderPrimarySelected},
+
+        NOW()
+        )
+        <selectKey resultType="Long" keyProperty="playSignalSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <update id="senderPlaySignalUpdate" parameterType="com.msm.heartnal.core.dto.PlaySignalDto">
+        UPDATE couple_signal.play_signal
+        SET
+            senderPrimarySelected = #{senderPrimarySelected},
+            recipientPrimarySelected = #{recipientPrimarySelected},
+            primaryResult = #{primaryResult},
+
+            senderSecondarySelected = #{senderSecondarySelected},
+            recipientSecondarySelected = #{recipientSecondarySelected},
+            secondaryResult = #{secondaryResult},
+
+            senderTertiarySelected = #{senderTertiarySelected},
+            recipientTertiarySelected = #{recipientTertiarySelected},
+            tertiaryResult = #{tertiaryResult},
+
+            finalResult = #{finalResult},
+            finalResultItem = #{finalResultItem},
+
+            modDt = NOW()
+        WHERE playSignalSeq = #{playSignalSeq}
+    </update>
+
+    <update id="recipientPlaySignal" parameterType="com.msm.heartnal.core.dto.PlaySignalDto">
+        UPDATE couple_signal.play_signal
+        SET
+            recipientPrimarySelected = #{recipientPrimarySelected},
+            primaryResult = #{primaryResult},
+
+            recipientSecondarySelected = #{recipientSecondarySelected},
+            secondaryResult = #{secondaryResult},
+
+            recipientTertiarySelected = #{recipientTertiarySelected},
+            tertiaryResult = #{tertiaryResult},
+
+            finalResult = #{finalResult},
+            finalResultItem = #{finalResultItem},
+
+            modDt = NOW()
+        WHERE playSignalSeq = #{playSignalSeq}
+    </update>
+
+    <select id="getPlaySignalBySignalSeq" parameterType="Long" resultType="com.msm.heartnal.core.dto.PlaySignalDto">
+        SELECT
+            *
+        FROM couple_signal.play_signal
+        WHERE playSignalSeq = #{playSignalSeq} AND validYN = "Y"
+    </select>
+
+    <select id="getPlaySignalMostMatchedItem" parameterType="String" resultType="com.msm.heartnal.core.dto.MostMatchedItemDto">
+        SELECT
+            finalResultItem as playSignalFinalResultItem,
+            count(finalResultItem) as playSignalFinalResultItemCount
+        FROM couple_signal.play_signal
+        WHERE coupleCode = #{coupleCode} AND validYN = "Y"
+        group by playSignalFinalResultItem
+        order by playSignalFinalResultItemCount
+        desc limit 1
+    </select>
+
+    <delete id="deleteUnResolvedPlaySignal" parameterType="com.msm.heartnal.core.dto.MemberDto">
+        DELETE FROM couple_signal.play_signal
+        WHERE coupleCode = #{coupleCode} AND finalResult is null
+    </delete>
+
+</mapper>

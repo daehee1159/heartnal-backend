@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.CalendarMapper">
+
+    <insert id="setMenstrualCycle" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto" useGeneratedKeys="true" keyColumn="menstrualCycleSeq">
+        INSERT INTO menstrual_cycle_calendar.menstrual_cycle
+        (memberSeq, coupleMemberSeq, coupleCode, contraceptiveYN, regDt)
+        VALUES
+        (#{memberSeq}, #{coupleMemberSeq}, #{coupleCode}, #{contraceptiveYN}, NOW())
+        <selectKey resultType="Long" keyProperty="menstrualCycleSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <select id="getMenstrualCycle" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto" resultType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto">
+        SELECT
+            *
+        FROM menstrual_cycle_calendar.menstrual_cycle
+        WHERE coupleCode = #{coupleCode}
+    </select>
+
+    <update id="updateMenstrualCycle" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle
+        SET
+            lastMenstrualStartDt = #{lastMenstrualStartDt}, menstrualCycle = #{menstrualCycle}, menstrualPeriod = #{menstrualPeriod},
+            contraceptiveYN = #{contraceptiveYN}, takingContraceptiveDt = #{takingContraceptiveDt}, contraceptive = #{contraceptive},
+            modDt = NOW()
+        WHERE menstrualCycleSeq = #{menstrualCycleSeq} AND memberSeq = #{memberSeq}
+    </update>
+
+    <update id="updateLastMenstrualStartDt" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle
+        SET
+            lastMenstrualStartDt = #{lastMenstrualStartDt},
+            modDt = NOW()
+        WHERE menstrualCycleSeq = #{menstrualCycleSeq} AND memberSeq = #{memberSeq}
+    </update>
+
+    <delete id="deleteMenstrualCycle" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleDto">
+        DELETE FROM menstrual_cycle_calendar.menstrual_cycle
+        WHERE memberSeq = #{memberSeq} AND coupleCode = #{coupleCode}
+    </delete>
+
+    <insert id="setMenstrualCycleMessage" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleMessageDto" useGeneratedKeys="true" keyColumn="menstrualCycleMessageSeq">
+        INSERT INTO menstrual_cycle_calendar.menstrual_cycle_message
+        (memberSeq, coupleMemberSeq, coupleCode, menstruation3DaysAgoAlarm, menstruation3DaysAgo, menstruationDtAlarm ,menstruationDt, ovulationDtAlarm, ovulationDt, fertileWindowStartDtAlarm, fertileWindowStartDt, fertileWindowsEndDtAlarm, fertileWindowsEndDt, regDt)
+        VALUES
+        (#{memberSeq}, #{coupleMemberSeq}, #{coupleCode}, #{menstruation3DaysAgoAlarm}, #{menstruation3DaysAgo}, #{menstruationDtAlarm} ,#{menstruationDt}, #{ovulationDtAlarm} ,#{ovulationDt}, #{fertileWindowStartDtAlarm} ,#{fertileWindowStartDt}, #{fertileWindowsEndDtAlarm} ,#{fertileWindowsEndDt}, NOW())
+        <selectKey resultType="Long" keyProperty="menstrualCycleMessageSeq">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <select id="getMenstrualCycleMessage" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleMessageDto" resultType="com.msm.heartnal.core.dto.calendar.MenstrualCycleMessageDto">
+        SELECT
+            *
+        FROM menstrual_cycle_calendar.menstrual_cycle_message
+        WHERE memberSeq = #{memberSeq} AND coupleCode = #{coupleCode}
+    </select>
+
+    <update id="updateMenstrualCycleMessage" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleMessageDto">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle_message
+        SET
+            menstruation3DaysAgoAlarm = #{menstruation3DaysAgoAlarm}, menstruation3DaysAgo = #{menstruation3DaysAgo},
+            menstruationDtAlarm = #{menstruationDtAlarm}, menstruationDt = #{menstruationDt},
+            ovulationDtAlarm = #{ovulationDtAlarm}, ovulationDt = #{ovulationDt},
+            fertileWindowStartDtAlarm = #{fertileWindowStartDtAlarm}, fertileWindowStartDt = #{fertileWindowStartDt},
+            fertileWindowsEndDtAlarm = #{fertileWindowsEndDtAlarm}, fertileWindowsEndDt = #{fertileWindowsEndDt},
+            modDt = NOW()
+        WHERE menstrualCycleMessageSeq = #{menstrualCycleMessageSeq} AND memberSeq = #{memberSeq}
+    </update>
+
+    <delete id="deleteMenstrualCycleMessage" parameterType="com.msm.heartnal.core.dto.calendar.MenstrualCycleMessageDto">
+        DELETE FROM menstrual_cycle_calendar.menstrual_cycle_message
+        WHERE coupleCode = #{coupleCode}
+    </delete>
+
+    <update id="deleteMenstrualCycleByCoupleCode" parameterType="String">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="deleteMenstrualCycleMessageByCoupleCode" parameterType="String">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle_message
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restoreMenstrualCycleCalendar" parameterType="String">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restoreMenstrualCycleMessageCalendar" parameterType="String">
+        UPDATE menstrual_cycle_calendar.menstrual_cycle_message
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msm.heartnal.core.mapper.CoupleDiaryMapper">
+
+    <insert id="setCoupleDiary" parameterType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        INSERT INTO couple_diary.couple_diary
+            (writerMemberSeq, coupleCode, contents, datetime, fileName1, fileName2, fileName3, regDt)
+        VALUES
+            (#{writerMemberSeq}, #{coupleCode}, #{contents}, #{datetime}, #{fileName1}, #{fileName2, jdbcType=VARCHAR}, #{fileName3, jdbcType=VARCHAR}, NOW())
+    </insert>
+
+    <select id="getCoupleDiaryList" parameterType="String" resultType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        SELECT
+            *
+        FROM couple_diary.couple_diary
+        WHERE coupleCode = #{coupleCode} AND validYN = "Y" ORDER BY regDt DESC
+    </select>
+
+    <select id="getCoupleDiary" parameterType="Long" resultType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        SELECT
+            *
+        FROM couple_diary.couple_diary
+        WHERE diarySeq = #{diarySeq} AND validYN = "Y"
+    </select>
+
+    <update id="updateCoupleDiary" parameterType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        UPDATE couple_diary.couple_diary
+        SET
+            contents = #{contents}, datetime = #{datetime},
+            fileName1 = #{fileName1}, fileName2 = #{fileName2}, fileName3 = #{fileName3},
+            modDt = NOW()
+        WHERE diarySeq = #{diarySeq}
+    </update>
+
+    <delete id="deleteCoupleDiary" parameterType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        DELETE FROM couple_diary.couple_diary
+        WHERE diarySeq = #{diarySeq} AND writerMemberSeq = #{writerMemberSeq} AND coupleCode = #{coupleCode}
+    </delete>
+
+    <update id="deleteCoupleDiaryByDisconnectCouple" parameterType="String">
+        UPDATE couple_diary.couple_diary
+        SET
+            validYN = "N",
+            deleteDt = NOW()
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="restoreCoupleDiary" parameterType="String">
+        UPDATE couple_diary.couple_diary
+        SET
+            validYN = "Y",
+            deleteDt = null
+        WHERE coupleCode = #{coupleCode}
+    </update>
+
+    <update id="pressLike" parameterType="com.msm.heartnal.core.dto.CoupleDiaryDto">
+        UPDATE couple_diary.couple_diary
+        SET
+            likeMember1 = #{likeMember1},
+            likeMember2 = #{likeMember2}
+        WHERE diarySeq = #{diarySeq}
+    </update>
+
+</mapper>
